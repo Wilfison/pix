@@ -1,12 +1,18 @@
 # frozen_string_literal: true
 
-require_relative './cobrancas/desconto'
-require_relative './cobrancas/json'
+require 'date'
+require 'pix/validations'
+
+require 'pix/cobrancas/desconto'
+require 'pix/cobrancas/json'
+require 'pix/cobrancas/validation'
 
 module Pix
   # Cria class para cobrança (/cob) e cobranças com data fixa (/cobv)
   class Cobranca
+    include Validations
     include Cobrancas::Json
+    include Cobrancas::Validation
 
     # @return [String] <b>OBRIGATORIO</b>: Chave PIX do recebedor.
     attr_accessor :chave_pix
@@ -89,6 +95,12 @@ module Pix
     # @return [Array<Pix::Cobrancas::Desconto>]
     attr_accessor :descontos
 
+    validates_presence_of :chave_pix,
+                          :loc_id,
+                          :devedor_nome,
+                          :valor_original,
+                          message: 'não pode ficar em branco.'
+
     def initialize(attrs = {})
       attrs.each { |attr, value| send("#{attr}=", value) }
 
@@ -97,23 +109,43 @@ module Pix
 
     # Adiciona desconto com data fixa
     # @param data [Date] Data limite para o desconto
-    # @param valor [Float] Desconto em valor absoluto ou percentual
+    # @param valor [Float] Desconto em valor absoluto ou percentual de acordo com desconto_modalidade
     def add_desconto_data_fixa(data, valor)
       self.descontos = [] if descontos.nil?
 
       descontos << Cobrancas::Desconto.new(data, valor)
     end
 
+    # Define o CPF do devedor
+    # @return [String]
     def devedor_cpf=(cpf)
       @devedor_cpf = sanitize_documento(cpf)
     end
 
+    # Define o CNPJ do devedor
+    # @return [String]
     def devedor_cnpj=(cnpj)
       @devedor_cnpj = sanitize_documento(cnpj)
     end
 
+    # Verifica se cobranca tem vencimento
+    # @return [Boolean]
     def cobranca_com_vencimento?
       data_vencimento.is_a?(Date)
+    end
+
+    def valid?
+      add_validation_vencimento if cobranca_com_vencimento?
+
+      super
+    end
+
+    def invalid?
+      !valid?
+    end
+
+    def create!
+      raise Pix::Error, errors.full_messages if invalid?
     end
   end
 end

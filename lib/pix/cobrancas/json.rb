@@ -50,10 +50,10 @@ module Pix
         devedor['cnpj'] = devedor_cnpj if devedor_cnpj
 
         if cobranca_com_vencimento?
-          devedor['cep'] = devedor_cep
-          devedor['uf'] = devedor_uf
-          devedor['cidade'] = devedor_cidade
-          devedor['logradouro'] = devedor_logradouro
+          devedor['cep'] = sanitize_documento(devedor_cep) if devedor_cep
+          devedor['uf'] = devedor_uf if devedor_uf
+          devedor['cidade'] = devedor_cidade if devedor_cidade
+          devedor['logradouro'] = devedor_logradouro if devedor_logradouro
         end
 
         data['devedor'] = devedor
