@@ -1,0 +1,19 @@
+Style/StringLiterals:
+  Enabled: true
+  EnforcedStyle: single_quotes
+
+Style/StringLiteralsInInterpolation:
+  Enabled: true
+  EnforcedStyle: double_quotes
+
+Layout/LineLength:
+  Enabled: true
+  Max: 120
+
+Metrics/AbcSize:
+  Enabled: true
+  Max: 50
+
+Metrics/MethodLength:
+  Enabled: true
+  Max: 25
