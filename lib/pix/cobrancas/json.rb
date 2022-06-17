@@ -4,7 +4,7 @@ require_relative '../helpers'
 
 module Pix
   module Cobrancas
-    # formata cobranca para padrao BACEN
+    # Formata JSON cobranca para o padrao BACEN
     module Json
       include Helpers
 
@@ -17,7 +17,7 @@ module Pix
         load_json_valor(data)
 
         data['chave'] = chave_pix
-        data['solicitacaoPagador'] = solicitacao_pagador if solicitacao_pagador
+        data['solicitacaoPagador'] = truncate(solicitacao_pagador, 140) if solicitacao_pagador
         data
       end
 

@@ -9,6 +9,10 @@ require 'pix/cobrancas/validation'
 
 module Pix
   # Cria class para cobrança (/cob) e cobranças com data fixa (/cobv)
+  #
+  # {include:Cobrancas::Json}
+  #
+  # {include:Cobrancas::Validation}
   class Cobranca
     include Validations
     include Cobrancas::Json
@@ -39,9 +43,8 @@ module Pix
                   :devedor_cidade,
                   :devedor_logradouro
 
-    # @return [String] Documento do devedor da cobrança.
-    attr_reader :devedor_cpf,
-                :devedor_cnpj
+    # @return [String<Number>] Documento do devedor da cobrança.
+    attr_reader :devedor_cpf, :devedor_cnpj
 
     # @return [Float] <b>OBRIGATORIO</b>: Valor original da cobrança.
     attr_accessor :valor_original
@@ -50,9 +53,11 @@ module Pix
     #
     #   1 = Valor Fixo
     #   2 = Percentual
+    # @return [String]
     attr_accessor :multa_modalidade
     # Multa do documento em valor absoluto ou percentual
     # conforme multa_modalidade.
+    # @return [Float]
     attr_accessor :multa_valor
 
     # Modalidade de juros
@@ -65,18 +70,22 @@ module Pix
     #   6 = Percentual ao dia (dias úteis)
     #   7 = Percentual ao mês (dias úteis)
     #   8 = Percentual ao ano (dias úteis)
+    # @return [String]
     attr_accessor :juros_modalidade
     # Juros do documento em valor absoluto ou percentual
     # conforme juros_modalidade.
+    # @return [Float]
     attr_accessor :juros_valor
 
     # Modalidade de abatimentos
     #
     #   1 = Valor Fixo
     #   2 = Percentual
+    # @return [String]
     attr_accessor :abatimento_modalidade
     # Abatimentos ou outras deduções aplicadas ao documento,
     # em valor absoluto ou percentual do valor original do documento.
+    # @return [Float]
     attr_accessor :abatimento_valor
 
     # Modalidade de descontos
@@ -87,9 +96,11 @@ module Pix
     #   4 = Valor por antecipação dia útil
     #   5 = Percentual por antecipação dia corrido
     #   6 = Percentual por antecipação dia útil
+    # @return [String]
     attr_accessor :desconto_modalidade
     # Abatimentos ou outras deduções aplicadas ao documento,
     # em valor absoluto ou percentual do valor original do documento.
+    # @return [Float]
     attr_accessor :desconto_valor
     # Lista de Descontos
     # @return [Array<Pix::Cobrancas::Desconto>]
@@ -134,6 +145,7 @@ module Pix
       data_vencimento.is_a?(Date)
     end
 
+    # @return [Boolean] Verifica se cobrança está válida
     def valid?
       add_validation_vencimento if cobranca_com_vencimento?
 
@@ -144,8 +156,23 @@ module Pix
       !valid?
     end
 
+    # @return [Hash] Retorna Hash formatada no padrao Bacen (pag ou pagv)
+    def json
+      raise Pix::Error, errors.full_messages if invalid?
+
+      super
+    end
+
     def create!
       raise Pix::Error, errors.full_messages if invalid?
+    end
+
+    def update!
+      raise Pix::Error, errors.full_messages if invalid?
+    end
+
+    def destroy!
+      nil
     end
   end
 end

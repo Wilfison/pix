@@ -24,5 +24,11 @@ module Pix
     def sanitize_documento(valor)
       valor.to_s.gsub(/[^\d]/, '')
     end
+
+    def truncate(string, length)
+      end_index = length - 1
+
+      string[0..end_index]
+    end
   end
 end

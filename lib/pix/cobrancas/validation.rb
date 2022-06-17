@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Pix
   module Cobrancas
-    # @private
+    # Valida principais campos para evitar chamadas incorretas a api
     module Validation
       def add_validation_vencimento
         self.class.validates_presence_of :validade_apos_vencimento, message: blank_msg
