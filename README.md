@@ -4,7 +4,22 @@
 
 Facilitar o processo de implantação do Pix em projetos com Ruby.
 
-**Gem ainda em desenvolvimento**
+## Status desenvolvimento
+- Cobrança:
+    - [x] Cobrança Imediata
+    - [x] Cobrança com Vencimento[s]
+    - [x] Exportar JSON
+    - [x] Validação
+    - [ ] Envio para endpoint
+    - [ ] Consultar payload de cobrança imediata
+    - [ ] Consultar payload de cobrança com vencimento
+    - [ ] Ler retorno endpoint
+    - [ ] Cobrança em Lote
+- Pix
+    - [ ] Consultar pix recebido
+    - [ ] Listar recebidos
+    - [ ] Solicitar Devolução
+    - [ ] Consultar Devolução
 
 <!-- ## Instalação
 
