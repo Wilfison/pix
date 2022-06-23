@@ -73,7 +73,7 @@ module Pix
         return unless desconto_valor || descontos
 
         desconto = {}
-        desconto['modalidade'] = desconto_modalidade
+        desconto['modalidade'] = desconto_modalidade.to_s
         desconto['descontoDataFixa'] = descontos.map(&:serialize) if descontos
         desconto['valorPerc'] = formata_valor(:desconto_valor) unless descontos
 

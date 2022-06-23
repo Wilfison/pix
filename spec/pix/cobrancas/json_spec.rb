@@ -16,11 +16,11 @@ RSpec.describe Pix::Cobrancas::Json do
         devedor_cnpj: '53.642.938/0001-71',
         devedor_nome: 'Francisco da Silva',
         valor_original: 10.6,
-        multa_modalidade: '1',
+        multa_modalidade: 1,
         multa_valor: 5.1,
-        juros_modalidade: '2',
+        juros_modalidade: 2,
         juros_valor: 2.0,
-        desconto_modalidade: '1',
+        desconto_modalidade: 1,
         chave_pix: '5f84a4c5-c5cb-4599-9f13-7eb4d419dacc',
         solicitacao_pagador: 'Cobrança dos serviços prestados.'
       )
