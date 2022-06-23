@@ -147,13 +147,19 @@ module Pix
 
     # @return [Boolean] Verifica se cobrança está válida
     def valid?
-      add_validation_vencimento if cobranca_com_vencimento?
+      cobranca_com_vencimento? ? add_cobv_validations : add_cob_validations
 
       super
     end
 
+    # @return [Boolean] Verifica se cobrança está inválida
     def invalid?
       !valid?
+    end
+
+    # @return [Boolean] Verifica se o documento do devedor está presente
+    def documento_present?
+      !devedor_cpf.nil? || !devedor_cnpj.nil?
     end
 
     # @return [Hash] Retorna Hash formatada no padrao Bacen (pag ou pagv)

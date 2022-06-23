@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-require_relative '../helpers'
+require 'date'
+
+require 'pix/helpers'
 
 module Pix
   module Cobrancas
@@ -19,6 +21,8 @@ module Pix
       def initialize(data, valor)
         @data = data
         @valor = valor
+
+        validate!
       end
 
       # @return [Hash] Retorna valor formatado para valor.desconto.descontoDataFixa
@@ -27,6 +31,13 @@ module Pix
         json['data'] = formata_data(data)
         json['valorPerc'] = formata_valor(:valor)
         json
+      end
+
+      private
+
+      def validate!
+        raise Pix::Error, 'Desconto#data deve ser do tipo Date' unless data.is_a?(Date)
+        raise Pix::Error, 'Desconto#valor deve ser um Float' unless /\./.match?(valor.to_s)
       end
     end
   end

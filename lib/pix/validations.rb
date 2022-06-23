@@ -12,7 +12,7 @@ module Pix
     end
 
     module ClassMethods
-      attr_reader :presences, :lengths, :numericals, :inclusions, :eachs
+      attr_reader :presences, :lengths, :numericals, :inclusions, :eachs, :dates
 
       def validates_presence_of(*attr_names)
         @presences ||= []
@@ -22,6 +22,11 @@ module Pix
       def validates_length_of(*attr_names)
         @lengths ||= []
         @lengths = @lengths << attr_names
+      end
+
+      def validates_dates_of(*attr_names)
+        @dates ||= []
+        @dates = @dates << attr_names
       end
 
       def validates_numericality_of(*attr_names)
@@ -59,6 +64,7 @@ module Pix
       all_valid = false unless check_numericals
       all_valid = false unless check_lengths
       all_valid = false unless check_inclusions
+      all_valid = false unless check_dates
       all_valid
     end
 
@@ -134,9 +140,9 @@ module Pix
       lengths.each do |rule|
         variable = rule[0]
         next unless respond_to?(variable)
-        
+
         value = send(variable)
-        
+
         next if rule[-1][:allow_blank] && value.nil?
 
         if rule[-1][:in]
@@ -164,6 +170,45 @@ module Pix
           end
         elsif rule[-1][:maximum]
           if value && value.size > rule[-1][:maximum]
+            all_checked = false
+            errors.add variable, rule[-1][:message]
+          end
+        end
+      end
+      all_checked
+    end
+
+    def check_dates
+      dates = []
+      dates = self.class.superclass.superclass.dates || [] if self.class.superclass.superclass.respond_to?(:dates)
+      dates += self.class.superclass.dates || [] if self.class.superclass.respond_to?(:dates)
+      dates += self.class.dates if self.class.dates
+      return true unless dates
+
+      all_checked = true
+      dates.each do |rule|
+        variable = rule[0]
+        next unless respond_to?(variable)
+
+        value = send(variable)
+
+        next if rule[-1][:allow_blank] && value.nil?
+
+        if rule[-1][:in] && (value >= rule[-1][:in].first || value <= rule[-1][:in].last)
+          all_checked = false
+          errors.add variable, rule[-1][:message]
+        end
+        if rule[-1][:is] && (value == rule[-1][:is])
+          all_checked = false
+          errors.add variable, rule[-1][:message]
+        end
+        if rule[-1][:less_than]
+          if value && value < rule[-1][:less_than]
+            all_checked = false
+            errors.add variable, rule[-1][:message]
+          end
+        elsif rule[-1][:greater_than]
+          if value && value > rule[-1][:greater_than]
             all_checked = false
             errors.add variable, rule[-1][:message]
           end

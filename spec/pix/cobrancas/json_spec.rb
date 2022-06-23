@@ -77,6 +77,7 @@ RSpec.describe Pix::Cobrancas::Json do
     context 'cobranca com vencimento' do
       before do
         cobranca.data_vencimento = Date.new(2022, 1, 31)
+        cobranca.validade_apos_vencimento = 30
       end
 
       it 'calendario (cobranca com vencimento) presente' do
