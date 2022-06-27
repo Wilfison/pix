@@ -169,8 +169,11 @@ module Pix
       super
     end
 
-    def create!
+    def create!(numero_banco, credenciais)
       raise Pix::Error, errors.full_messages if invalid?
+
+      api_banco = Pix::API::BANCOS[numero_banco]
+      api_banco.create!(credenciais)
     end
 
     def update!

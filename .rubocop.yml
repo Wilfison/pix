@@ -21,3 +21,5 @@ Metrics/MethodLength:
 Metrics/CyclomaticComplexity:
   Enabled: true
   Max: 10
+Naming/AccessorMethodName:
+  Enabled: false
