@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require './spec/spec_helper'
+require './lib/pix/cobrancas/json/bradesco'
 
-RSpec.describe Pix::Cobrancas::Json do
+RSpec.describe Pix::Cobrancas::Json::Bradesco do
   describe 'gera json' do
     let(:cobranca) do
       Pix::Cobranca.new(
@@ -27,25 +28,25 @@ RSpec.describe Pix::Cobrancas::Json do
     end
 
     it 'valida schema' do
-      json = cobranca.json
+      json = described_class.new(cobranca).json
 
       expect(json).to include('calendario')
-      expect(json).to include('loc')
       expect(json).to include('devedor')
       expect(json).to include('valor')
-      expect(json).to include('chave')
-      expect(json).to include('solicitacaoPagador')
+      expect(json).to include('chave_pix')
+      expect(json).to include('solicitacaopagador')
+      expect(json).to_not include('loc')
     end
 
-    it 'location.id presente' do
-      location = cobranca.json['loc']
+    it 'location.id not presente' do
+      location = described_class.new(cobranca).json
 
-      expect(location['id']).to eq(123)
+      expect(location['loc']).to be_nil
     end
 
     context 'cobranca imediata' do
       it 'calendario (cobranca imediata) presente' do
-        calendario = cobranca.json['calendario']
+        calendario = described_class.new(cobranca).json['calendario']
 
         expect(calendario['expiracao']).to eq(3600)
         expect(calendario['dataDeVencimento']).to be_nil
@@ -53,10 +54,10 @@ RSpec.describe Pix::Cobrancas::Json do
       end
 
       it 'devedor dados presente' do
-        devedor = cobranca.json['devedor']
+        devedor = described_class.new(cobranca).json['devedor']
 
         expect(devedor['cpf']).to eq('12345678909')
-        expect(devedor['cnpj']).to eq('53642938000171')
+        expect(devedor['cnpj']).to be_nil
         expect(devedor['nome']).to eq('Francisco da Silva')
         expect(devedor['logradouro']).to be_nil
         expect(devedor['cidade']).to be_nil
@@ -65,7 +66,7 @@ RSpec.describe Pix::Cobrancas::Json do
       end
 
       it 'dados de valor presente' do
-        json = cobranca.json['valor']
+        json = described_class.new(cobranca).json['valor']
 
         expect(json).to include('original')
         expect(json).to_not include('multa')
@@ -82,7 +83,7 @@ RSpec.describe Pix::Cobrancas::Json do
 
       it 'calendario (cobranca com vencimento) presente' do
         cobranca.validade_apos_vencimento = 30
-        calendario = cobranca.json['calendario']
+        calendario = described_class.new(cobranca).json['calendario']
 
         expect(calendario['expiracao']).to be_nil
         expect(calendario['dataDeVencimento']).to eq('2022-01-31')
@@ -90,9 +91,10 @@ RSpec.describe Pix::Cobrancas::Json do
       end
 
       it 'devedor dados presente' do
-        devedor = cobranca.json['devedor']
+        cobranca.devedor_cpf = nil
+        devedor = described_class.new(cobranca).json['devedor']
 
-        expect(devedor['cpf']).to eq('12345678909')
+        expect(devedor['cpf']).to be_nil
         expect(devedor['cnpj']).to eq('53642938000171')
         expect(devedor['nome']).to eq('Francisco da Silva')
         expect(devedor['logradouro']).to eq('Alameda Souza, Numero 80, Bairro Braz')
@@ -102,14 +104,14 @@ RSpec.describe Pix::Cobrancas::Json do
       end
 
       it 'dados de valor.multa presente' do
-        json = cobranca.json['valor']
+        json = described_class.new(cobranca).json['valor']
 
         expect(json['multa']['modalidade']).to eq('1')
         expect(json['multa']['valorPerc']).to eq('5.10')
       end
 
       it 'dados de valor.juros presente' do
-        json = cobranca.json['valor']
+        json = described_class.new(cobranca).json['valor']
 
         expect(json['juros']['modalidade']).to eq('2')
         expect(json['juros']['valorPerc']).to eq('2.00')
@@ -117,7 +119,7 @@ RSpec.describe Pix::Cobrancas::Json do
 
       it 'dados de valor.desconto simples presente' do
         cobranca.desconto_valor = 2.0
-        json = cobranca.json['valor']
+        json = described_class.new(cobranca).json['valor']
 
         expect(json['desconto']['modalidade']).to eq('1')
         expect(json['desconto']['valorPerc']).to eq('2.00')
@@ -126,7 +128,7 @@ RSpec.describe Pix::Cobrancas::Json do
       it 'dados de valor.desconto composto presente' do
         cobranca.add_desconto_data_fixa(Date.new(2022, 2, 1), 10.3)
 
-        json = cobranca.json['valor']
+        json = described_class.new(cobranca).json['valor']
         json_desconto = json['desconto']['descontoDataFixa']
 
         expect(json['desconto']['modalidade']).to eq('1')
@@ -135,8 +137,20 @@ RSpec.describe Pix::Cobrancas::Json do
         expect(json_desconto).to be_a(Array)
         expect(json_desconto[0]).to include('data')
         expect(json_desconto[0]).to include('valorPerc')
-        expect(json_desconto[0]['data']).to include('2022-02-01')
-        expect(json_desconto[0]['valorPerc']).to include('10.30')
+        expect(json_desconto[0]['data']).to eq('2022-02-01')
+        expect(json_desconto[0]['valorPerc']).to eq('10.30')
+      end
+
+      it 'informacoes adicionais' do
+        cobranca.add_info_adicional('item adicional', 'valor adicional')
+
+        json = described_class.new(cobranca).json['info_adicionais']
+
+        expect(json).to be_a(Array)
+        expect(json[0]).to include('nome')
+        expect(json[0]).to include('valor')
+        expect(json[0]['nome']).to eq('item adicional')
+        expect(json[0]['valor']).to eq('valor adicional')
       end
     end
   end

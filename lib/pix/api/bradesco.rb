@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'json'
 require 'pix/api/base'
 
 module Pix
@@ -28,14 +29,27 @@ module Pix
 
         response = self.class.post('/auth/server/oauth/token', options)
 
-        if response.code >= 500
-          raise Pix::ResponseError.new(response.response),
-                "#{response.code}: #{response.response.message}"
-        end
+        raise Pix::ResponseError.new(response.response), response.response.message if response.code >= 500
 
         response_body = JSON.parse(response.body)
 
         set_access_token_attributes(response_body)
+      rescue HTTParty::ResponseError => e
+        raise Pix::ResponseError.new(e), "#{e.code}: #{e.message}"
+      end
+
+      # Cria cobranca no PSP
+      # @param cobranca [Pix::Cobranca]
+      def create!(cobranca)
+        get_access_token
+        target_cobranca = cobranca.cobranca_com_vencimento? ? '/cobv' : '/cob'
+        cobranca_json = cobranca.json(Pix::Cobrancas::Json::Bradesco)
+
+        response = self.class.patch(target_cobranca, query: cobranca_json)
+
+        raise Pix::ResponseError.new(response.response), response.response.message if response.code >= 500
+
+        JSON.parse(response.body)
       rescue HTTParty::ResponseError => e
         raise Pix::ResponseError.new(e), "#{e.code}: #{e.message}"
       end

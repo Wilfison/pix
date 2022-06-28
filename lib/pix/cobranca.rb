@@ -1,11 +1,15 @@
 # frozen_string_literal: true
 
 require 'date'
+
+require 'pix/helpers'
 require 'pix/validations'
 
 require 'pix/cobrancas/desconto'
-require 'pix/cobrancas/json'
 require 'pix/cobrancas/validation'
+
+require 'pix/cobrancas/json/bacen'
+require 'pix/cobrancas/json/bradesco'
 
 module Pix
   # Cria class para cobrança (/cob) e cobranças com data fixa (/cobv)
@@ -14,10 +18,12 @@ module Pix
   #
   # {include:Cobrancas::Validation}
   class Cobranca
+    include Helpers
     include Validations
-    include Cobrancas::Json
     include Cobrancas::Validation
 
+    # @return [String] Id da Transação
+    attr_accessor :txid
     # @return [String] <b>OBRIGATORIO</b>: Chave PIX do recebedor.
     attr_accessor :chave_pix
     # Informação em formato livre, a ser enviada ao recebedor.
@@ -106,6 +112,10 @@ module Pix
     # @return [Array<Pix::Cobrancas::Desconto>]
     attr_accessor :descontos
 
+    # Informações adicionais
+    # @return [Array<Pix::CobrancaResponse::InfoAdicional>]
+    attr_accessor :info_adicionais
+
     validates_presence_of :chave_pix,
                           :loc_id,
                           :devedor_nome,
@@ -125,6 +135,15 @@ module Pix
       self.descontos = [] if descontos.nil?
 
       descontos << Cobrancas::Desconto.new(data, valor)
+    end
+
+    # Adiciona informacao adicional
+    # @param nome [String] Nome do campo.
+    # @param valor [String] Dados do campo.
+    def add_info_adicional(nome, valor)
+      self.info_adicionais = [] if info_adicionais.nil?
+
+      info_adicionais << Cobrancas::InfoAdicional.new(nome, valor)
     end
 
     # Define o CPF do devedor
@@ -162,18 +181,23 @@ module Pix
       !devedor_cpf.nil? || !devedor_cnpj.nil?
     end
 
-    # @return [Hash] Retorna Hash formatada no padrao Bacen (pag ou pagv)
-    def json
+    # Retorna Hash formatada no padrao Bacen (pag ou pagv)
+    # @return [Hash]
+    # @param json_class [Pix::Cobranca::Json]
+    def json(json_class = Pix::Cobranca::Json::Bacen)
       raise Pix::Error, errors.full_messages if invalid?
 
-      super
+      json_service = json_class.new(self)
+      json_service.json
     end
 
     def create!(numero_banco, credenciais)
       raise Pix::Error, errors.full_messages if invalid?
 
-      api_banco = Pix::API::BANCOS[numero_banco]
-      api_banco.create!(credenciais)
+      api_banco = Pix::API::BANCOS[numero_banco].new(credenciais)
+      api_body = api_banco.create!(self)
+
+      CobrancaResponse.new(api_body)
     end
 
     def update!

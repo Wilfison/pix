@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-require 'pix/cobranca'
 require 'pix/version'
-require 'pix/validations'
+
+require 'pix/cobranca'
+require 'pix/cobranca_response'
 require 'pix/response_error'
 
-require 'pix/cobrancas/json'
 require 'pix/cobrancas/desconto'
+require 'pix/cobrancas/info_adicional'
 
 require 'pix/api/credenciais'
 

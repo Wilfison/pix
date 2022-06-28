@@ -22,6 +22,8 @@ module Pix
     end
 
     def sanitize_documento(valor)
+      return if valor.nil?
+
       valor.to_s.gsub(/[^\d]/, '')
     end
 

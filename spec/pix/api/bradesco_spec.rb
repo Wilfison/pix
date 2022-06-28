@@ -36,7 +36,7 @@ describe Pix::API::Bradesco do
         .with(headers: api_headers)
         .to_return(status: [500, 'Internal Server Error'])
 
-      expect { api.get_access_token }.to raise_error(Pix::ResponseError)
+      expect { api.get_access_token }.to raise_error(Pix::ResponseError, 'Internal Server Error')
     end
   end
 end
